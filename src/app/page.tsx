@@ -46,15 +46,30 @@ function getShapeMask(shape: string, size: number) {
 }
 
 function BinaryMorphingShapes({ size = 24 }) {
+  const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState(0);
+  const [digits, setDigits] = useState<string[]>([]);
+  const [flicker, setFlicker] = useState<boolean[]>([]);
   const shapes = ["square", "circle", "triangle"];
 
   useEffect(() => {
+    setMounted(true);
+    setDigits(Array.from({ length: size * size }, () => (Math.random() > 0.5 ? '0' : '1')));
+    setFlicker(Array.from({ length: size * size }, () => Math.random() > 0.995));
+  }, [size]);
+
+  useEffect(() => {
+    if (!mounted) return;
     const interval = setInterval(() => {
       setPhase(p => p + 1);
+      setDigits(Array.from({ length: size * size }, () => (Math.random() > 0.5 ? '0' : '1')));
+      setFlicker(Array.from({ length: size * size }, () => Math.random() > 0.995));
     }, 120);
     return () => clearInterval(interval);
-  }, []);
+  }, [size, mounted]);
+
+  // Don't render until mounted on client
+  if (!mounted) return null;
 
   // Morph between shapes
   const shapeIdx = Math.floor(phase / 40) % shapes.length;
@@ -71,21 +86,19 @@ function BinaryMorphingShapes({ size = 24 }) {
           const y = Math.floor(idx / size);
           // Morph value between two shapes
           const morph = maskA[y][x] * (1 - t) + maskB[y][x] * t;
-          // Flicker some digits
-          const flicker = Math.random() > 0.995;
           return (
             <span
               key={idx}
-              className={`text-[0.9vw] md:text-[0.6vw] font-mono ${flicker ? 'text-green-400 animate-pulse' : 'text-white'}`}
+              className={`text-[0.9vw] md:text-[0.6vw] font-mono ${flicker[idx] ? 'text-green-400 animate-pulse' : 'text-white'}`}
               style={{
-                opacity: morph > 0.5 ? (flicker ? 0.7 : 1) : 0.05,
+                opacity: morph > 0.5 ? (flicker[idx] ? 0.7 : 1) : 0.05,
                 transition: 'opacity 0.2s',
                 letterSpacing: '0.05em',
                 textAlign: 'center',
                 userSelect: 'none',
               }}
             >
-              {Math.random() > 0.5 ? '0' : '1'}
+              {digits[idx]}
             </span>
           );
         })}
