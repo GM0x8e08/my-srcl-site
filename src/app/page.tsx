@@ -27,7 +27,7 @@ function getShapeMask(shape: string, size: number) {
   const mask = [];
   const center = (size - 1) / 2;
   for (let y = 0; y < size; y++) {
-    let row = [];
+    const row = [];
     for (let x = 0; x < size; x++) {
       if (shape === "square") {
         row.push(1);
